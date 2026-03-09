@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
 
   const clientId = process.env.SM8_APP_ID;
   const clientSecret = process.env.SM8_APP_SECRET;
-  const redirectUri = process.env.SM8_CALLBACK_URL;
+  const redirectUri = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}/api/oauth/callback` 
+    : 'http://localhost:3000/api/oauth/callback';
   const tokenUrl = process.env.SM8_TOKEN_URL;
 
   try {
@@ -22,13 +24,11 @@ export async function GET(request: NextRequest) {
       redirect_uri: redirectUri,
     });
 
-    const { access_token, refresh_token, expires_in } = response.data;
+    const { access_token, expires_in } = response.data;
 
     // Store in cookies
     let redirectResponse = NextResponse.redirect(new URL('/', request.url));
-    redirectResponse.cookies.set('sm8_access_token', access_token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: expires_in });
-    redirectResponse.cookies.set('sm8_refresh_token', refresh_token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-    redirectResponse.cookies.set('sm8_token_expiry', (Date.now() + expires_in * 1000).toString(), { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    redirectResponse.cookies.set('sm8_token', access_token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: expires_in });
 
     return redirectResponse;
   } catch (error) {

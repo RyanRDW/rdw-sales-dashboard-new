@@ -1,5 +1,7 @@
-import { Title } from '@mantine/core';
-import { DataTable } from 'mantine-datatable';
+import { ColumnDef } from "@tanstack/react-table"
+import { DataTable } from "@/components/data-table"
+import { isAuthenticated } from '@/services/auth';
+import { redirect } from 'next/navigation';
 import { getStaff, getJobs, getJobNotes } from '@/services/servicem8';
 
 interface Staff {
@@ -36,20 +38,36 @@ async function getStaffPerformance() {
 }
 
 export default async function StaffPerformance() {
+  if (!await isAuthenticated()) {
+    redirect('/');
+  }
+
   const data = await getStaffPerformance();
 
+  const columns: ColumnDef<typeof data[0]>[] = [
+    {
+      accessorKey: "name",
+      header: "Staff Name",
+    },
+    {
+      accessorKey: "jobsCompleted",
+      header: "Jobs Completed",
+    },
+    {
+      accessorKey: "calls",
+      header: "Calls Made",
+    },
+    {
+      accessorKey: "revenue",
+      header: "Revenue Generated",
+      cell: ({ row }) => `$${row.original.revenue.toFixed(2)}`,
+    },
+  ]
+
   return (
-    <div style={{ padding: '2rem' }}>
-      <Title order={1} mb="xl">Staff Performance</Title>
-      <DataTable
-        columns={[
-          { accessor: 'name', title: 'Staff Name' },
-          { accessor: 'jobsCompleted', title: 'Jobs Completed' },
-          { accessor: 'calls', title: 'Calls Made' },
-          { accessor: 'revenue', title: 'Revenue Generated', render: ({ revenue }) => `$${revenue.toFixed(2)}` },
-        ]}
-        records={data}
-      />
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4">Staff Performance</h1>
+      <DataTable columns={columns} data={data} />
     </div>
   );
 }

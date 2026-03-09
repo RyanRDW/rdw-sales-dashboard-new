@@ -1,6 +1,5 @@
 'use server';
 
-import axios from 'axios';
 import { getAccessToken } from './auth';
 
 export async function apiRequest(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET', data?: any, params?: any) {
@@ -8,18 +7,26 @@ export async function apiRequest(endpoint: string, method: 'GET' | 'POST' | 'PUT
   const baseUrl = process.env.SM8_API_BASE;
 
   try {
-    const response = await axios({
+    const url = new URL(`${baseUrl}/${endpoint}`);
+    if (params) {
+      Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    }
+
+    const response = await fetch(url.toString(), {
       method,
-      url: `${baseUrl}${endpoint}`,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      data,
-      params,
+      body: data ? JSON.stringify(data) : undefined,
+      cache: 'no-store'
     });
 
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
   } catch (error) {
     console.error(`API request error for ${endpoint}:`, error);
     throw error;
@@ -49,4 +56,9 @@ export async function getCompanies(filters?: any) {
 
 export async function getJobContacts(filters?: any) {
   return apiRequest('jobcontact.json', 'GET', null, filters);
+}
+
+export async function getJob(uuid: string) {
+  const jobs = await apiRequest('job.json', 'GET', null, { $filter: `uuid eq '${uuid}'` });
+  return jobs[0];
 }

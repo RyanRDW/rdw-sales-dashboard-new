@@ -1,7 +1,8 @@
-import { Title, Text, Group } from '@mantine/core';
-import { LineChart } from '@mantine/charts';
+import { LineChart } from '@/components/line-chart'
 import { getJobNotes } from '@/services/servicem8';
 import dayjs from 'dayjs';
+import { isAuthenticated } from '@/services/auth';
+import { redirect } from 'next/navigation';
 
 interface Note {
   entry_date: string;
@@ -30,23 +31,21 @@ async function getCallData() {
 }
 
 export default async function CallTracking() {
+  if (!await isAuthenticated()) {
+    redirect('/');
+  }
+
   const { totalCalls, trendData } = await getCallData();
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <Title order={1} mb="xl">Call Tracking</Title>
-      <Group mb="md">
-        <Text fw={500}>Total Calls:</Text>
-        <Text>{totalCalls}</Text>
-      </Group>
-      <Title order={2} mb="md">Call Trends</Title>
-      <LineChart
-        h={300}
-        data={trendData}
-        dataKey="date"
-        series={[{ name: 'calls', color: 'blue.6' }]}
-        curveType="linear"
-      />
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4">Call Tracking</h1>
+      <div className="mb-4">
+        <span className="font-medium">Total Calls: </span>
+        <span>{totalCalls}</span>
+      </div>
+      <h2 className="text-xl font-semibold mb-2">Call Trends</h2>
+      <LineChart data={trendData} />
     </div>
   );
 }
