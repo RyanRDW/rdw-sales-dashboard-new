@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "RDW Sales Dashboard",
+  "description": "A dashboard for RDW Roofing sales and performance tracking",
+  "documentationUrl": "https://example.com/docs",
+  "publisher": "RDW Roofing",
+  "publisherUrl": "https://rdwroofing.com.au",
+  "scopes": [
+    "read_jobs",
+    "read_staff",
+    "read_notes",
+    "read_companies"
+  ],
+  "webhooks": []
+}
